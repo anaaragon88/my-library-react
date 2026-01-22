@@ -1,32 +1,51 @@
-import { useState } from "react"; 
-import { createBook } from "../services/BookServices";
+import { useState, useEffect } from "react";
+import { createBook, updateBook } from "../services/BookServices";
 
-const AddBook = ({ onBookCreated }) => {
+const AddBook = ({ onBookCreated, bookEdit, onSubmit }) => {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [year, setYear] = useState("");
 
+  useEffect(() => {
+    if (bookEdit) {
+      setTitle(bookEdit.title);
+      setAuthor(bookEdit.author);
+      setYear(bookEdit.year);
+    }
+  }, [bookEdit]);
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const newBook = {
-    title,
-    author,
-    year,
+    const bookData = {
+      title,
+      author,
+      year,
+    };
+
+    if (bookEdit) {
+      await updateBook(bookEdit.id, bookData);
+    } else {
+      await createBook(bookData);
+    }
+
+    if (onBookCreated) {
+      onBookCreated();
+    }
+
+    if (onSubmit) {
+      onSubmit();
+    }
+
+    setTitle("");
+    setAuthor("");
+    setYear("");
   };
-
-  await createBook(newBook);
-  onBookCreated();
-
-  setTitle("");
-  setAuthor("");
-  setYear("");
-};
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 rounded-lg border">
       <h1 className="text-2xl font-bold mb-6 text-center">
-        Añadir libro
+        {bookEdit ? "Editar libro" : "Añadir libro"}
       </h1>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -58,7 +77,7 @@ const AddBook = ({ onBookCreated }) => {
           type="submit"
           className="bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700"
         >
-          Guardar libro
+          {bookEdit ? "Guardar cambios" : "Guardar libro"}
         </button>
       </form>
     </div>
